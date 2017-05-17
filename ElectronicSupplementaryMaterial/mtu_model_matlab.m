@@ -13,7 +13,7 @@
 % Revision 1.23, 25.02.2014
 %
 % If you use this model for scientific purposes, please cite our article:
-% D.F.B. Haeufle, M. Günther, A. Bayer, S. Schmitt (2014) Hill-type muscle
+% D.F.B. Haeufle, M. Gï¿½nther, A. Bayer, S. Schmitt (2014) Hill-type muscle
 % model with serial damping and eccentric force-velocity relation Journal
 % of Biomechanics http://dx.doi.org/10.1016/j.jbiomech.2014.02.009
 
@@ -46,7 +46,7 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 % THE POSSIBILITY OF SUCH DAMAGE.
 
-function [F_MTC, dot_l_CE, F_elements] = mtc_model_matlab(l_CE, l_MTC, dot_l_MTC, q, mus_Param)
+function [F_MTC, dot_l_CE, F_elements] = mtc_model_matlab(l_CE, l_SEE, dot_l_MTC, q, mus_Param)
 
 % Isometric force (Force length relation)
 if l_CE >= mus_Param.CE.l_CEopt %descending branch
@@ -63,7 +63,7 @@ else % shorter than slack length
 end
 
 % Force of the serial elastic element SEE
-l_SEE = abs(l_MTC-l_CE); % SEE length
+%l_SEE = abs(l_MTC-l_CE); % SEE length
 if (l_SEE>mus_Param.SEE.l_SEE0) && (l_SEE<mus_Param.SEE.l_SEEnll) %non-linear part
     F_SEE = mus_Param.SEE.KSEEnl*((l_SEE-mus_Param.SEE.l_SEE0)^(mus_Param.SEE.v_SEE));
 elseif l_SEE>=mus_Param.SEE.l_SEEnll %linear part
@@ -92,13 +92,15 @@ C1 = - C2*dot_l_MTC - D0 - F_SEE + F_PEE - mus_Param.CE.F_max*A_rel;
 
 C0 = D0*dot_l_MTC + mus_Param.CE.l_CEopt*B_rel*( F_SEE - F_PEE - mus_Param.CE.F_max*q*F_isom);
 
-% solve the quadratic equation
+% % solve the quadratic equation
 if (C1^2-4*C2*C0)<0
     dot_l_CE = 0;
     %warning('the quadratic equation in the muscle model would result in a complex solution; to compensate, the CE contraction velocity was set to zero')
 else
     dot_l_CE = (-C1-sqrt(C1^2-4*C2*C0))/(2*C2);
 end
+
+
 
 % in case of an eccentric contraction:
 if dot_l_CE > 0
@@ -130,10 +132,12 @@ end
 % Contractile element force
 F_CE = mus_Param.CE.F_max*(( (q*F_isom+A_rel) / (1 - dot_l_CE/(mus_Param.CE.l_CEopt*B_rel) ) )-A_rel);
 
+F_MTC = F_CE + F_PEE;
+
 % Force of the serial damping element
 F_SDE = mus_Param.SDE.d_SEmax*((1-mus_Param.SDE.R_SE)*((F_CE+F_PEE)/mus_Param.CE.F_max)+mus_Param.SDE.R_SE)*(dot_l_MTC-dot_l_CE);
 
-F_MTC = F_SEE+F_SDE;
+%F_MTC = F_SEE+F_SDE;
 
 
 % Output the forces of the elements (for debugging/curiosity)
