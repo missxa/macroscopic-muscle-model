@@ -1,6 +1,6 @@
 function calculate_force()
-%rosinit('127.0.0.1');
-name = 'biceps';
+%rosinit('localhost');
+name = 'triceps';
 topic = strcat('/myo_blink/muscles/', name, '/sensors');
 muscle_sub = rossubscriber(topic);
 MP = muscle_param_mus01;
@@ -13,15 +13,14 @@ set(f,'KeyPressFcn', @clear);
 
     while 1
         hold on;
-        [l_CE, l_SEE, dot_l_CE_emp] = read_muscle(muscle_sub, MP);
+        [l_CE, delta_l_SEE, dot_l_CE_emp, dot_l_SE_emp] = read_muscle(muscle_sub, MP);
         %lower_joint_angle = joint_msg.Data;
-
-        [F_MTC, dot_l_CE, F_elements] = mtu_model_matlab(l_CE, l_SEE, 0, 0.1, MP);
+        dot_l_MTC =  dot_l_CE_emp + dot_l_SE_emp;
+        [F_MTC, dot_l_CE, F_elements] = mtu_model_matlab(l_CE, delta_l_SEE, dot_l_MTC, 1, MP);
         
         %plot(dot_l_CE, F_MTC, '.'); 
         subplot(5,1,1);
         title('muscle model velocity');
-       
         %i_dot_l_CE = interp1(step, dot_l_CE);
         plot(getGlobalStep, dot_l_CE, 'o');%, stepq, i_dot_l_CE, ':.');
         
@@ -33,30 +32,33 @@ set(f,'KeyPressFcn', @clear);
         hold on;
         
         subplot(5,1,3);
-        title('contractile element displacement');
-        plot(getGlobalStep, l_CE - MP.CE.l_CEopt, 'x');
+        title('CE force');
+        plot(getGlobalStep,  F_elements(4), 'x');
         hold on;
         
         subplot(5,1,4);
-        title('force');
-        plot(getGlobalStep, F_MTC, '*');
+        title('SEE force');
+        plot(getGlobalStep, F_elements(1), '*');
         hold on;
         
         subplot(5,1,5);
         title('elastic displacement');
-        plot(getGlobalStep, l_SEE - MP.SEE.l_SEE0, '*');
+        plot(getGlobalStep, delta_l_SEE, '*');
         hold on;
+       
         
         setGlobalStep(getGlobalStep + 1);
         %pause(0.1);
     end
 end
 
-function [l_CE, l_SEE, dot_l_CE] = read_muscle(muscle_sub, params)
+function [l_CE, delta_l_SEE, dot_l_CE, dot_l_SE] = read_muscle(muscle_sub, params)
 muscle_msg = receive(muscle_sub);
 l_CE = params.CE.l_CEopt + muscle_msg.ContractileDisplacement * 0.006 * pi / 6.88319; % tansform from rad to meters
-l_SEE = params.SEE.l_SEE0 + muscle_msg.ElasticDisplacement / 66666.666; % from ticks to meters
+%l_SEE = params.SEE.l_SEE0 + muscle_msg.ElasticDisplacement / 66666.666; % from ticks to meters
+delta_l_SEE = muscle_msg.ElasticDisplacement / 66666.666;
 dot_l_CE = muscle_msg.ActuatorVel * 0.006 * pi / 6.28319; % from rad/s to m/s
+dot_l_SE = muscle_msg.ElasticVel; % m/s
 %l_MTC = l_CE + l_SEE;
 end
 

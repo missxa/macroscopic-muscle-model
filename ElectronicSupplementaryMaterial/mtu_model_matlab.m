@@ -46,8 +46,8 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 % THE POSSIBILITY OF SUCH DAMAGE.
 
-function [F_MTC, dot_l_CE, F_elements] = mtc_model_matlab(l_CE, l_SEE, dot_l_MTC, q, mus_Param)
-
+function [F_MTC, dot_l_CE, F_elements] = mtc_model_matlab(l_CE, delta_l_SEE, dot_l_MTC, q, mus_Param)
+eps = 1e-04;
 % Isometric force (Force length relation)
 if l_CE >= mus_Param.CE.l_CEopt %descending branch
     F_isom = exp( - ( abs( ((l_CE/mus_Param.CE.l_CEopt)-1)/mus_Param.CE.DeltaW_limb_des ) )^mus_Param.CE.v_CElimb_des );
@@ -55,25 +55,31 @@ else %ascending branch
     F_isom = exp( - ( abs( ((l_CE/mus_Param.CE.l_CEopt)-1)/mus_Param.CE.DeltaW_limb_asc ) )^mus_Param.CE.v_CElimb_asc );
 end
 
-% Force of the parallel elastic element PEE
-if l_CE >= mus_Param.PEE.l_PEE0
-    F_PEE = mus_Param.PEE.K_PEE*(l_CE-mus_Param.PEE.l_PEE0)^(mus_Param.PEE.v_PEE);
-else % shorter than slack length
-    F_PEE = 0;
-end
+% % Force of the parallel elastic element PEE
+% if l_CE >= mus_Param.PEE.l_PEE0
+%     F_PEE = mus_Param.PEE.K_PEE*(l_CE-mus_Param.PEE.l_PEE0)^(mus_Param.PEE.v_PEE);
+% else % shorter than slack length
+%     F_PEE = 0;
+% end
+F_PEE = 0;
 
-% Force of the serial elastic element SEE
-%l_SEE = abs(l_MTC-l_CE); % SEE length
-if (l_SEE>mus_Param.SEE.l_SEE0) && (l_SEE<mus_Param.SEE.l_SEEnll) %non-linear part
-    F_SEE = mus_Param.SEE.KSEEnl*((l_SEE-mus_Param.SEE.l_SEE0)^(mus_Param.SEE.v_SEE));
-elseif l_SEE>=mus_Param.SEE.l_SEEnll %linear part
-    F_SEE = mus_Param.SEE.DeltaF_SEE0+mus_Param.SEE.KSEEl*(l_SEE-mus_Param.SEE.l_SEEnll);
-else %salck length
+if delta_l_SEE > eps
+    F_SEE = mus_Param.SEE.DeltaF_SEE0 + mus_Param.SEE.KSEEl * delta_l_SEE;
+else
     F_SEE = 0;
 end
+% Force of the serial elastic element SEE
+%l_SEE = abs(l_MTC-l_CE); % SEE length
+% if l_SEE - mus_Param.SEE.l_SEE0 > eps && l_SEE - mus_Param.SEE.l_SEEnll < -eps %non-linear part
+%     F_SEE = mus_Param.SEE.KSEEnl*((l_SEE - mus_Param.SEE.l_SEE0)^(mus_Param.SEE.v_SEE));
+% elseif l_SEE - mus_Param.SEE.l_SEEnll >= eps %linear part
+%     F_SEE = mus_Param.SEE.DeltaF_SEE0 + mus_Param.SEE.KSEEl * delta_l_SEE; % (l_SEE - mus_Param.SEE.l_SEEnll);
+% else %salck length
+%     F_SEE = 0;
+% end
 
 % Hill Parameters concentric contraction
-if l_CE<mus_Param.CE.l_CEopt
+if l_CE - mus_Param.CE.l_CEopt < -eps
     A_rel=1;
 else
     A_rel=F_isom;
@@ -83,56 +89,60 @@ A_rel = A_rel * mus_Param.CE.A_rel0*1/4*(1+3*q);
 B_rel = mus_Param.CE.B_rel0*1*1/7*(3+4*q);
 
 
+% no SDE and PEE
+dot_l_CE = ((F_SEE - mus_Param.CE.F_max*q*F_isom)*B_rel*mus_Param.CE.l_CEopt)/(F_SEE + A_rel*mus_Param.CE.F_max);
+
+
 % calculate CE contraction velocity
-D0 = mus_Param.CE.l_CEopt*B_rel*mus_Param.SDE.d_SEmax*(mus_Param.SDE.R_SE+(1-mus_Param.SDE.R_SE)*(q*F_isom+F_PEE/mus_Param.CE.F_max));
-
-C2 = mus_Param.SDE.d_SEmax*(mus_Param.SDE.R_SE - (A_rel - F_PEE / mus_Param.CE.F_max)*(1-mus_Param.SDE.R_SE));
-
-C1 = - C2*dot_l_MTC - D0 - F_SEE + F_PEE - mus_Param.CE.F_max*A_rel;
-
-C0 = D0*dot_l_MTC + mus_Param.CE.l_CEopt*B_rel*( F_SEE - F_PEE - mus_Param.CE.F_max*q*F_isom);
+% D0 = mus_Param.CE.l_CEopt*B_rel*mus_Param.SDE.d_SEmax*(mus_Param.SDE.R_SE+(1-mus_Param.SDE.R_SE)*(q*F_isom+F_PEE/mus_Param.CE.F_max));
+% 
+% C2 = mus_Param.SDE.d_SEmax*(mus_Param.SDE.R_SE - (A_rel - F_PEE / mus_Param.CE.F_max)*(1-mus_Param.SDE.R_SE));
+% 
+% C1 = - C2*dot_l_MTC - D0 - F_SEE + F_PEE - mus_Param.CE.F_max*A_rel;
+% 
+% C0 = D0*dot_l_MTC + mus_Param.CE.l_CEopt*B_rel*( F_SEE - F_PEE - mus_Param.CE.F_max*q*F_isom);
 
 % % solve the quadratic equation
-if (C1^2-4*C2*C0)<0
-    dot_l_CE = 0;
-    %warning('the quadratic equation in the muscle model would result in a complex solution; to compensate, the CE contraction velocity was set to zero')
-else
-    dot_l_CE = (-C1-sqrt(C1^2-4*C2*C0))/(2*C2);
-end
-
-
-
-% in case of an eccentric contraction:
-if dot_l_CE > 0
-    % calculate new Hill-parameters (asymptotes of the hyperbola)
-    B_rel = (q*F_isom*(1-mus_Param.CE.F_eccentric)/(q*F_isom+A_rel)*B_rel/mus_Param.CE.S_eccentric);
-    A_rel = -mus_Param.CE.F_eccentric*q*F_isom;
-    
-    % calculate CE eccentric velocity
-    D0 = mus_Param.CE.l_CEopt*B_rel*mus_Param.SDE.d_SEmax*(mus_Param.SDE.R_SE+(1-mus_Param.SDE.R_SE)*(q*F_isom+F_PEE/mus_Param.CE.F_max));
-    
-    C2 = mus_Param.SDE.d_SEmax*(mus_Param.SDE.R_SE - (A_rel - F_PEE / mus_Param.CE.F_max)*(1-mus_Param.SDE.R_SE));
-    
-    C1 = - C2*dot_l_MTC - D0 - F_SEE + F_PEE - mus_Param.CE.F_max*A_rel;
-    
-    C0 = D0*dot_l_MTC + mus_Param.CE.l_CEopt*B_rel*( F_SEE - F_PEE - mus_Param.CE.F_max*q*F_isom);
-    
-    % solve the quadratic equation
-    if (C1^2-4*C2*C0)<0
-        dot_l_CE = 0;
-        %warning('the quadratic equation in the muscle model would result in a complex solution; to compensate, the CE contraction velocity was set to zero')
-    else
-        dot_l_CE = (-C1+sqrt(C1^2-4*C2*C0))/(2*C2); % note that here +sqrt gives the correct solution
-    end
-    if dot_l_CE < 0; 
-        %warning(['eccentric case error in muscle ' Mus_Param.muscle_ID]) for test purposes
-    end
-end
+% if (C1^2-4*C2*C0)<0
+%     dot_l_CE = 0;
+%     %warning('the quadratic equation in the muscle model would result in a complex solution; to compensate, the CE contraction velocity was set to zero')
+% else
+%     dot_l_CE = (-C1-sqrt(C1^2-4*C2*C0))/(2*C2);
+% end
+% 
+% 
+% 
+% % in case of an eccentric contraction:
+% if dot_l_CE > 0
+%     % calculate new Hill-parameters (asymptotes of the hyperbola)
+%     B_rel = (q*F_isom*(1-mus_Param.CE.F_eccentric)/(q*F_isom+A_rel)*B_rel/mus_Param.CE.S_eccentric);
+%     A_rel = -mus_Param.CE.F_eccentric*q*F_isom;
+%     
+%     % calculate CE eccentric velocity
+%     D0 = mus_Param.CE.l_CEopt*B_rel*mus_Param.SDE.d_SEmax*(mus_Param.SDE.R_SE+(1-mus_Param.SDE.R_SE)*(q*F_isom+F_PEE/mus_Param.CE.F_max));
+%     
+%     C2 = mus_Param.SDE.d_SEmax*(mus_Param.SDE.R_SE - (A_rel - F_PEE / mus_Param.CE.F_max)*(1-mus_Param.SDE.R_SE));
+%     
+%     C1 = - C2*dot_l_MTC - D0 - F_SEE + F_PEE - mus_Param.CE.F_max*A_rel;
+%     
+%     C0 = D0*dot_l_MTC + mus_Param.CE.l_CEopt*B_rel*( F_SEE - F_PEE - mus_Param.CE.F_max*q*F_isom);
+%     
+%     % solve the quadratic equation
+%     if (C1^2-4*C2*C0)<0
+%         dot_l_CE = 0;
+%         %warning('the quadratic equation in the muscle model would result in a complex solution; to compensate, the CE contraction velocity was set to zero')
+%     else
+%         dot_l_CE = (-C1+sqrt(C1^2-4*C2*C0))/(2*C2); % note that here +sqrt gives the correct solution
+%     end
+%     if dot_l_CE < 0; 
+%         %warning(['eccentric case error in muscle ' Mus_Param.muscle_ID]) for test purposes
+%     end
+% end
 
 % Contractile element force
 F_CE = mus_Param.CE.F_max*(( (q*F_isom+A_rel) / (1 - dot_l_CE/(mus_Param.CE.l_CEopt*B_rel) ) )-A_rel);
 
-F_MTC = F_CE + F_PEE;
+F_MTC = F_CE; %+ F_PEE;
 
 % Force of the serial damping element
 F_SDE = mus_Param.SDE.d_SEmax*((1-mus_Param.SDE.R_SE)*((F_CE+F_PEE)/mus_Param.CE.F_max)+mus_Param.SDE.R_SE)*(dot_l_MTC-dot_l_CE);

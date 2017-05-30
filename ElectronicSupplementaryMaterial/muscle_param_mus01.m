@@ -32,7 +32,7 @@
 %
 %
 % If you use this model for scientific purposes, please cite our article:
-% D.F.B. Haeufle, M. Günther, A. Bayer, S. Schmitt (2014) Hill-type muscle
+% D.F.B. Haeufle, M. Gï¿½nther, A. Bayer, S. Schmitt (2014) Hill-type muscle
 % model with serial damping and eccentric force-velocity relation Journal
 % of Biomechanics http://dx.doi.org/10.1016/j.jbiomech.2014.02.009
 
@@ -76,7 +76,7 @@ MP.muscle_ID = 1;                   % this identifyer is used for error and warn
 
 % contractile element (CE)
 %===========================
-MP.CE.F_max = 1420;                 % F_max in [N] for Extensor (Kistemaker et al., 2006)
+MP.CE.F_max = 1421;                 % F_max in [N] for Extensor (Kistemaker et al., 2006)
 MP.CE.l_CEopt =0.092;               % optimal length of CE in [m] for Extensor (Kistemaker et al., 2006)
 MP.CE.DeltaW_limb_des = 0.35;       % width of normalized bell curve in descending branch (Moerl et al., 2012)
 MP.CE.DeltaW_limb_asc = 0.35;       % width of normalized bell curve in ascending branch (Moerl et al., 2012)
@@ -107,15 +107,15 @@ MP.SDE.d_SEmax = MP.SDE.D_SE*(MP.CE.F_max*MP.CE.A_rel0)/(MP.CE.l_CEopt*MP.CE.B_r
 
 % serial elastic element (SEE)
 % ============================
-MP.SEE.l_SEE0        = 0.172;       % rest length of SEE in [m] (Kistemaker et al., 2006)
-MP.SEE.DeltaU_SEEnll = 0.0425;      % relativ stretch at non-linear linear transition (Moerl et al., 2012)
-MP.SEE.DeltaU_SEEl   = 0.017;       % relativ additional stretch in the linear part providing a force increase of deltaF_SEE0 (Moerl, 2012)
-MP.SEE.DeltaF_SEE0   = 568;         % both force at the transition and force increase in the linear part in [N] (~ 40% of the maximal isometric muscle force)
+MP.SEE.l_SEE0        = 0.055;       % rest length of SEE in [m] (Kistemaker et al., 2006)
+MP.SEE.DeltaU_SEEnll = 0.425;      % relativ stretch at non-linear linear transition (Moerl et al., 2012)
+MP.SEE.DeltaU_SEEl   = 0.17;       % relativ additional stretch in the linear part providing a force increase of deltaF_SEE0 (Moerl, 2012)
+MP.SEE.DeltaF_SEE0   = 38;         % both force at the transition and force increase in the linear part in [N] (~ 40% of the maximal isometric muscle force)
 
-MP.SEE.l_SEEnll      = (1 + MP.SEE.DeltaU_SEEnll)*MP.SEE.l_SEE0;
+MP.SEE.l_SEEnll      = 0.055;%(1 + MP.SEE.DeltaU_SEEnll)*MP.SEE.l_SEE0;
 MP.SEE.v_SEE         = MP.SEE.DeltaU_SEEnll/MP.SEE.DeltaU_SEEl;
 MP.SEE.KSEEnl        = MP.SEE.DeltaF_SEE0 / (MP.SEE.DeltaU_SEEnll*MP.SEE.l_SEE0)^MP.SEE.v_SEE;
-MP.SEE.KSEEl         = MP.SEE.DeltaF_SEE0 / (MP.SEE.DeltaU_SEEl*MP.SEE.l_SEE0);
+MP.SEE.KSEEl         = 66600*0.2;%MP.SEE.DeltaF_SEE0 / (MP.SEE.DeltaU_SEEl*MP.SEE.l_SEE0);
 
 
 disp(['*** Muscle_' num2str(MP.muscle_ID) ' parameters loaded ***']);
