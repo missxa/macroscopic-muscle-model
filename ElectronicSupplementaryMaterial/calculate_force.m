@@ -19,31 +19,36 @@ set(f,'KeyPressFcn', @clear);
         [F_MTC, dot_l_CE, F_elements] = mtu_model_matlab(l_CE, delta_l_SEE, dot_l_MTC, 1, MP);
         
         %plot(dot_l_CE, F_MTC, '.'); 
-        subplot(5,1,1);
+        subplot(6,1,1);
         title('muscle model velocity');
         %i_dot_l_CE = interp1(step, dot_l_CE);
         plot(getGlobalStep, dot_l_CE, 'o');%, stepq, i_dot_l_CE, ':.');
         
         hold on;
         
-        subplot(5,1,2);
+        subplot(6,1,2);
         title('emprical velocity');
         plot(getGlobalStep, dot_l_CE_emp, '*');
         hold on;
         
-        subplot(5,1,3);
+        subplot(6,1,3);
         title('CE force');
         plot(getGlobalStep,  F_elements(4), 'x');
         hold on;
         
-        subplot(5,1,4);
+        subplot(6,1,4);
         title('SEE force');
         plot(getGlobalStep, F_elements(1), '*');
         hold on;
         
-        subplot(5,1,5);
-        title('elastic displacement');
-        plot(getGlobalStep, delta_l_SEE, '*');
+        subplot(6,1,5);
+        title('PEE force');
+        plot(getGlobalStep, F_elements(2), '*');
+        hold on;
+        
+        subplot(6,1,6);
+        title('CE length');
+        plot(getGlobalStep, l_CE, '*');
         hold on;
        
         

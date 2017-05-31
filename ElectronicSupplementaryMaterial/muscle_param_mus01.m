@@ -76,7 +76,7 @@ MP.muscle_ID = 1;                   % this identifyer is used for error and warn
 
 % contractile element (CE)
 %===========================
-MP.CE.F_max = 1421;                 % F_max in [N] for Extensor (Kistemaker et al., 2006)
+MP.CE.F_max = 664.58;                 % F_max in [N] for Extensor (Kistemaker et al., 2006)
 MP.CE.l_CEopt =0.092;               % optimal length of CE in [m] for Extensor (Kistemaker et al., 2006)
 MP.CE.DeltaW_limb_des = 0.35;       % width of normalized bell curve in descending branch (Moerl et al., 2012)
 MP.CE.DeltaW_limb_asc = 0.35;       % width of normalized bell curve in ascending branch (Moerl et al., 2012)
