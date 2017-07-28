@@ -46,7 +46,7 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 % THE POSSIBILITY OF SUCH DAMAGE.
 
-function [F_MTC, dot_l_CE, F_elements] = mtc_model_matlab(l_CE, delta_l_SEE, dot_l_MTC, q, mus_Param)
+function [F_MTC, dot_l_CE, F_elements] = mtc_model_matlab(l_CE, dot_l_CE, delta_l_SEE, q, mus_Param)
 eps = 1e-04;
 % Isometric force (Force length relation)
 if l_CE >= mus_Param.CE.l_CEopt %descending branch
@@ -61,6 +61,7 @@ if l_CE >= mus_Param.PEE.l_PEE0
 else % shorter than slack length
     F_PEE = 0;
 end
+% F_PEE = 0;
 
 if delta_l_SEE > eps
     F_SEE = mus_Param.SEE.DeltaF_SEE0 + mus_Param.SEE.KSEEl * delta_l_SEE;
@@ -77,6 +78,7 @@ end
 %     F_SEE = 0;
 % end
 
+
 % Hill Parameters concentric contraction
 if l_CE - mus_Param.CE.l_CEopt < -eps
     A_rel=1;
@@ -89,23 +91,23 @@ B_rel = mus_Param.CE.B_rel0*1*1/7*(3+4*q);
 
 
 % no SDE and PEE
-%dot_l_CE = ((F_SEE - mus_Param.CE.F_max*q*F_isom)*B_rel*mus_Param.CE.l_CEopt)/(F_SEE + A_rel*mus_Param.CE.F_max);
+% dot_l_CE = B_rel*mus_Param.CE.l_CEopt*(1 - (mus_Param.CE.F_max*(q*F_isom + A_rel))/(F_SEE + A_rel*mus_Param.CE.F_max));
 
 % no SDE
-dot_l_CE = B_rel*mus_Param.CE.l_CEopt*(1 - mus_Param.CE.F_max*(q*F_isom + A_rel)/(F_SEE - F_PEE + A_rel*mus_Param.CE.F_max));
+%dot_l_CE = B_rel*mus_Param.CE.l_CEopt*(1 - mus_Param.CE.F_max*(q*F_isom + A_rel)/(F_SEE - F_PEE + A_rel*mus_Param.CE.F_max));
 
 % in case of an eccentric contraction:
 if dot_l_CE > 0
     % calculate new Hill-parameters (asymptotes of the hyperbola)
     B_rel = (q*F_isom*(1-mus_Param.CE.F_eccentric)/(q*F_isom+A_rel)*B_rel/mus_Param.CE.S_eccentric);
     A_rel = -mus_Param.CE.F_eccentric*q*F_isom;
-    dot_l_CE = B_rel*mus_Param.CE.l_CEopt*(1 - mus_Param.CE.F_max*(q*F_isom + A_rel)/(F_SEE - F_PEE + A_rel*mus_Param.CE.F_max));
+    dot_l_CE = B_rel*mus_Param.CE.l_CEopt*(1 - mus_Param.CE.F_max*(q*F_isom + A_rel)/(F_SEE + A_rel*mus_Param.CE.F_max));
 end
 
 % Contractile element force
 F_CE = mus_Param.CE.F_max*(( (q*F_isom+A_rel) / (1 - dot_l_CE/(mus_Param.CE.l_CEopt*B_rel) ) )-A_rel);
 
-F_MTC = F_CE + F_PEE;
+F_MTC = F_CE + F_PEE
 
 %F_MTC = F_SEE+F_SDE;
 
