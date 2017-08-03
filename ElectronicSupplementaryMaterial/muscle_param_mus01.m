@@ -74,16 +74,16 @@ MP.muscle_ID = 1;                   % this identifyer is used for error and warn
 
 %% Muscle Parameters
 
-% contractile element (CE)
+% contractile element (CE)l_CEopt
 %===========================
-MP.CE.F_max = 50;% 664.58;                 % F_max in [N] for Extensor (Kistemaker et al., 2006)
+MP.CE.F_max = 75;% 664.58;                 % F_max in [N] for Extensor (Kistemaker et al., 2006)
 MP.CE.l_CEopt =0.092;               % optimal length of CE in [m] for Extensor (Kistemaker et al., 2006)
 MP.CE.DeltaW_limb_des = 0.8;       % width of normalized bell curve in descending branch (Moerl et al., 2012)
 MP.CE.DeltaW_limb_asc = 0.8;       % width of normalized bell curve in ascending branch (Moerl et al., 2012)
 MP.CE.v_CElimb_des = 1.5;           % exponent for descending branch (Moerl et al., 2012)
 MP.CE.v_CElimb_asc = 3.0;           % exponent for ascending branch (Moerl et al., 2012)
-MP.CE.A_rel0 = 0.0025;                % parameter for contraction dynamics: maximum value of A_rel (Guenther, 1997, S. 82)
-MP.CE.B_rel0 = 0.0225;                % parameter for contraction dynmacis: maximum value of B_rel (Guenther, 1997, S. 82)
+MP.CE.A_rel0 = 0.25;                % parameter for contraction dynamics: maximum value of A_rel (Guenther, 1997, S. 82)
+MP.CE.B_rel0 = 2.25;                % parameter for contraction dynmacis: maximum value of B_rel (Guenther, 1997, S. 82)
 % eccentric force-velocity relation:
 MP.CE.S_eccentric  = 2;             % relation between F(v) slopes at v_CE=0 (van Soest & Bobbert, 1993)
 MP.CE.F_eccentric  = 1.5;           % factor by which the force can exceed F_isom for large eccentric velocities (van Soest & Bobbert, 1993)

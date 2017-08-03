@@ -47,6 +47,7 @@
 % THE POSSIBILITY OF SUCH DAMAGE.
 
 function [F_MTC, dot_l_CE, F_elements] = mtc_model_matlab(l_CE, dot_l_CE, delta_l_SEE, q, mus_Param)
+% l_CE = mus_Param.CE.l_CEopt;
 eps = 1e-04;
 % Isometric force (Force length relation)
 if l_CE >= mus_Param.CE.l_CEopt %descending branch
@@ -68,6 +69,7 @@ if delta_l_SEE > eps
 else
     F_SEE = 0;
 end
+
 % Force of the serial elastic element SEE
 %l_SEE = abs(l_MTC-l_CE); % SEE length
 % if l_SEE - mus_Param.SEE.l_SEE0 > eps && l_SEE - mus_Param.SEE.l_SEEnll < -eps %non-linear part
@@ -103,14 +105,13 @@ if dot_l_CE > 0
     A_rel = -mus_Param.CE.F_eccentric*q*F_isom;
     dot_l_CE = B_rel*mus_Param.CE.l_CEopt*(1 - mus_Param.CE.F_max*(q*F_isom + A_rel)/(F_SEE + A_rel*mus_Param.CE.F_max));
 end
-
+dot_l_CE
 % Contractile element force
 F_CE = mus_Param.CE.F_max*(( (q*F_isom+A_rel) / (1 - dot_l_CE/(mus_Param.CE.l_CEopt*B_rel) ) )-A_rel);
 
-F_MTC = F_CE + F_PEE
+F_MTC = F_CE + F_PEE;
 
 %F_MTC = F_SEE+F_SDE;
-
 
 % Output the forces of the elements (for debugging/curiosity)
 F_elements = [F_SEE F_PEE F_isom F_CE]';
