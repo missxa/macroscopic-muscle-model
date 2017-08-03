@@ -25,8 +25,11 @@ function calculate_force()
 
     wrestle_topic = '/myo_blink/wrestle/start';
     wrestle_sub = rossubscriber(wrestle_topic);
+    
+    proprio_topic = strcat('/myo_blink/muscles/', name, '/afferents/discharge/rate');
+    proprio_pub = rospublisher(proprio_topic, 'myo_blink/afferents');
+    
     receive(wrestle_sub);
-    prev_l_CE = 0.09;
         while 1
             
             if (wrestle_sub.LatestMessage.Data == 0)
@@ -40,7 +43,7 @@ function calculate_force()
             
             %lower_joint_angle = joint_msg.Data;
             dot_l_MTC =  dot_l_CE_emp + dot_l_SE_emp;
-            activation=0.8;%input('activation: ')
+            activation=0.8;
             [F_MTC, dot_l_CE, F_elements] = mtu_model_matlab(l_CE, dot_l_CE_emp, delta_l_SEE, activation, MP);
          
             if F_MTC < 38
@@ -65,14 +68,10 @@ function calculate_force()
                 l_PEE = MP.PEE.l_PEE0;
             end   
             
-            % waiting for the requested force to be applied
-%             while(1)
-%                 if (abs(muscle_sub.LatestMessage.ElasticDisplacement*0.2 + 38 - F_MTC_emp) < 3)
-%                     break
-%                 end
-%             end
-            
-            
+            proprio_msg = rosmessage(proprio_pub);
+            proprio_msg.Ia = delta_l_SEE;
+            proprio_msg.II = l_PEE;
+            send(proprio_pub, proprio_msg);
 %             %plot(dot_l_CE, F_MTC, '.'); 
 %             subplot(m,n,1);
 %             title('muscle model velocity');
@@ -112,8 +111,6 @@ function calculate_force()
             hold on;
 
             setGlobalStep(getGlobalStep + 1);
-%             pause(1);
-            prev_l_CE = l_CE;
         end
 end
 
