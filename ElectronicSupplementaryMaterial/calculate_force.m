@@ -4,7 +4,7 @@ function calculate_force()
         rosinit('localhost');
     end
 
-    name = 'biceps';
+    name = 'triceps';
     topic = strcat('/myo_blink/muscles/', name, '/sensors');
     muscle_sub = rossubscriber(topic);
     move_motor = rossvcclient('/myo_blink/move');
@@ -17,8 +17,8 @@ function calculate_force()
 %     scrsz = get(groot,'ScreenSize');
     %figure('Position',[1 scrsz(4) scrsz(3) scrsz(4)])
 %     f.Position = [2000 scrsz(4) scrsz(3) scrsz(4)];
-    m = 2;
-    n = 2;
+    m = 1;
+    n = 1;
     hold on;
 %     set(f,'KeyPressFcn', @clear);
     setGlobalStep(0);
@@ -28,8 +28,14 @@ function calculate_force()
     
     proprio_topic = strcat('/myo_blink/muscles/', name, '/afferents/discharge/rate');
     proprio_pub = rospublisher(proprio_topic, 'myo_blink/afferents');
+    f = {};
+    l = {};
+    Ia = {};
+    II = {};
+    l = {};
     
     receive(wrestle_sub);
+    tic
         while 1
             
             if (wrestle_sub.LatestMessage.Data == 0)
@@ -43,22 +49,16 @@ function calculate_force()
             
             %lower_joint_angle = joint_msg.Data;
             dot_l_MTC =  dot_l_CE_emp + dot_l_SE_emp;
-            activation=0.8;
+            activation=1;
             [F_MTC, dot_l_CE, F_elements] = mtu_model_matlab(l_CE, dot_l_CE_emp, delta_l_SEE, activation, MP);
-         
-            if F_MTC < 38
-                F_MTC_emp = 38;
-            elseif    F_MTC > 99
+            
+            F_MTC_emp = F_MTC + 38;
+%             if F_MTC < 38
+%                 F_MTC_emp = 38;
+            if    F_MTC_emp > 99
                 F_MTC_emp = 99; 
-            else
-                F_MTC_emp = F_MTC;
             end
             
-%             if F_MTC > 99
-%                     F_MTC_emp = 99; 
-%             else        
-%                 F_MTC_emp = F_MTC;
-%             end
             request.Setpoint = F_MTC_emp;
             call(move_motor, request);
             
@@ -84,34 +84,53 @@ function calculate_force()
 %             title('emprical velocity');
 %             plot(getGlobalStep, dot_l_CE, '*');
 %             hold on;
-% 
-            subplot(m,n,3);
-            title('l_P_E_E');
-            plot(getGlobalStep, l_PEE, 'x');
-            hold on;
-% 
-            subplot(m,n,2);
-            title('F_M_T_C');
-            plot(getGlobalStep, F_MTC,'o');
-            hold on;
-% 
-            subplot(m,n,4);
-            title('delta l_S_E_E');
-            plot(getGlobalStep, delta_l_SEE, '*');
-            hold on;
-% 
+            II = [II, l_PEE];
+%             subplot(m,n,4);
+%             title('l_P_E_E');
+%             plot(getGlobalStep, l_PEE, 'x');
+%             hold on;
+% % 
 %             subplot(m,n,2);
-%             title('CE length');
-%             plot(getGlobalStep, l_CE, '*');
+%             title('F_M_T_C');
+%             plot(getGlobalStep, F_MTC,'o');
+%             hold on;
+% % 
+%             Ia = [Ia, delta_l_SEE];
+%             subplot(m,n,3);
+%             title('delta l_S_E_E');
+%             plot(getGlobalStep, delta_l_SEE, '*');
 %             hold on;
 % 
+%             l_MTC = l_CE + delta_l_SEE;
+%             l = [l,l_MTC];
+%             subplot(m,n,2);
+%             title('MTC length');
+%             plot(getGlobalStep, l_MTC, '*');
+%             hold on;
+%               
+            f = [f, F_elements(2)];
+            l = [l, l_CE];
             subplot(m,n,1);
-            title('force-velocity');
-            plot(dot_l_CE_emp,  F_MTC, 'x');
+            title('Concentric contraction (shortening)');
+            xlabel('CE velocity [m/s]');
+            ylabel('CE force [N]');
+            plot(dot_l_CE_emp,  F_elements(4), 'x');
+%             
+%             subplot(m,n,1);
+%             title('Force-length=pee');
+%             xlabel('length');
+%             ylabel('force [N]');
+            
+%             plot(l_CE,  F_elements(2)/90, 'x');
             hold on;
 
             setGlobalStep(getGlobalStep + 1);
         end
+        toc
+        f = cell2mat(f);
+        l = cell2mat(l);
+        out = [double(l') double(f')];
+        save('../../msc-thesis/graphics/fl-pee.txt', 'out',   '-ASCII' );
 end
 
 function [l_CE, delta_l_SEE, dot_l_CE, dot_l_SE] = read_muscle(muscle_sub, params)

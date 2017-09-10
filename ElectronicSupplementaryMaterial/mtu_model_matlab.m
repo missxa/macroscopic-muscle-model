@@ -46,7 +46,7 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 % THE POSSIBILITY OF SUCH DAMAGE.
 
-function [F_MTC, dot_l_CE, F_elements] = mtc_model_matlab(l_CE, dot_l_CE, delta_l_SEE, q, mus_Param)
+function [F_MTC, dot_l_CE, F_elements] = mtu_model_matlab(l_CE, dot_l_CE, delta_l_SEE, q, mus_Param)
 % l_CE = mus_Param.CE.l_CEopt;
 eps = 1e-04;
 % Isometric force (Force length relation)
@@ -103,9 +103,9 @@ if dot_l_CE > 0
     % calculate new Hill-parameters (asymptotes of the hyperbola)
     B_rel = (q*F_isom*(1-mus_Param.CE.F_eccentric)/(q*F_isom+A_rel)*B_rel/mus_Param.CE.S_eccentric);
     A_rel = -mus_Param.CE.F_eccentric*q*F_isom;
-    dot_l_CE = B_rel*mus_Param.CE.l_CEopt*(1 - mus_Param.CE.F_max*(q*F_isom + A_rel)/(F_SEE + A_rel*mus_Param.CE.F_max));
+%     dot_l_CE = B_rel*mus_Param.CE.l_CEopt*(1 - mus_Param.CE.F_max*(q*F_isom + A_rel)/(F_SEE + A_rel*mus_Param.CE.F_max));
 end
-dot_l_CE
+
 % Contractile element force
 F_CE = mus_Param.CE.F_max*(( (q*F_isom+A_rel) / (1 - dot_l_CE/(mus_Param.CE.l_CEopt*B_rel) ) )-A_rel);
 
