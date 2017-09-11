@@ -95,7 +95,7 @@ MP.CE.F_eccentric  = 1.5;           % factor by which the force can exceed F_iso
 MP.PEE.L_PEE0   = 0.9;                               % rest length of PEE normalized to optimal lenght of CE (Guenther et al., 2007)
 MP.PEE.l_PEE0   = MP.PEE.L_PEE0*MP.CE.l_CEopt;       % rest length of PEE (Guenther et al., 2007)
 MP.PEE.v_PEE    = 2.5;                               % exponent of F_PEE (Moerl et al., 2012)
-MP.PEE.F_PEE    = 2;                               % force of PEE if l_CE is stretched to deltaWlimb_des (Moerl et al., 2012)
+MP.PEE.F_PEE    = 1;                               % force of PEE if l_CE is stretched to deltaWlimb_des (Moerl et al., 2012)
 MP.PEE.K_PEE    = MP.PEE.F_PEE*( MP.CE.F_max/ ( MP.CE.l_CEopt*(MP.CE.DeltaW_limb_des+1-MP.PEE.L_PEE0) )^MP.PEE.v_PEE );
                                                      % factor of non-linearity in F_PEE (Guenther et al., 2007)
 

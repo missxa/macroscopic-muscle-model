@@ -25,6 +25,7 @@ function calculate_force()
 
     wrestle_topic = '/myo_blink/wrestle/start';
     wrestle_sub = rossubscriber(wrestle_topic);
+    activ_sub = rossubscriber('/activation');
     
     proprio_topic = strcat('/myo_blink/muscles/', name, '/afferents/discharge/rate');
     proprio_pub = rospublisher(proprio_topic, 'myo_blink/afferents');
@@ -49,15 +50,20 @@ function calculate_force()
             
             %lower_joint_angle = joint_msg.Data;
             dot_l_MTC =  dot_l_CE_emp + dot_l_SE_emp;
-            activation=1;
+            
+            activation=activ_sub.LatestMessage.Data;
+            if(activation < 0)
+                activation = 0;
+            end
             [F_MTC, dot_l_CE, F_elements] = mtu_model_matlab(l_CE, dot_l_CE_emp, delta_l_SEE, activation, MP);
             
             F_MTC_emp = F_MTC + 38;
-%             if F_MTC < 38
-%                 F_MTC_emp = 38;
-            if    F_MTC_emp > 99
+            if F_MTC_emp < 38
+                F_MTC_emp = 38;
+            elseif    F_MTC_emp > 99
                 F_MTC_emp = 99; 
             end
+            F_MTC
             
             request.Setpoint = F_MTC_emp;
             call(move_motor, request);
@@ -114,14 +120,14 @@ function calculate_force()
             title('Concentric contraction (shortening)');
             xlabel('CE velocity [m/s]');
             ylabel('CE force [N]');
-            plot(dot_l_CE_emp,  F_elements(4), 'x');
+%             plot(dot_l_CE_emp,  F_elements(), 'x');
 %             
 %             subplot(m,n,1);
 %             title('Force-length=pee');
 %             xlabel('length');
 %             ylabel('force [N]');
             
-%             plot(l_CE,  F_elements(2)/90, 'x');
+            plot(l_CE,  F_elements(2)/90, 'x');
             hold on;
 
             setGlobalStep(getGlobalStep + 1);
