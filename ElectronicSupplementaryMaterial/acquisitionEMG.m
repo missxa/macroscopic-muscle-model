@@ -13,11 +13,21 @@ request.Action = 'keep';
 force = 40;
 request.Setpoint = force;
 
-%% start recording
-data = struct('EMG', {}, 'angle', {}, 'force', {});
+setParam(loadParams());
+param = getParam();
 
-%% set force on the arm
+%% obtain MVC
+MVC = calculateMVC(param.channels(muscle));
+
+%% display current incoming data
+f = figure();
+scrsz = get(groot,'ScreenSize');
+f.Position = [2000 scrsz(4) scrsz(3) scrsz(4)];
+
+emg_array = zeros(100);
+data = struct('EMG', {}, 'angle', {}, 'force', {});
 i = 0;
+j = 1;
 while i <= numTrials
     
     call(move_motor, request);
@@ -25,8 +35,13 @@ while i <= numTrials
 
     %% save emg signal, time, muscle force, current angle
     while toc < 3
-        [emg_msg,~] = judp('RECEIVE',16573,200);
+        [emg_msg,~] = judp('RECEIVE',16573,400);
         emg = jsondecode(char(emg_msg));
+        emg_array(j) = filterEMG(emg(param.channels(muscle)), MVC);
+        %hold on;
+        plot(1:j, emg_array(1:j), '-');
+        %plot(j, emg(1), '-x');
+        j = j + 1;
         joint_msg = receive(muscle_sub);
         joint_angle = joint_msg.Data;
         data(end+1) = struct('EMG', emg, 'angle', joint_angle, 'force', request.Setpoint);

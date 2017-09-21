@@ -13,14 +13,9 @@ function calculate_force()
     request.Muscle = name;
     MP = muscle_param_mus01;
     clf;
-%     f = figure();
-%     scrsz = get(groot,'ScreenSize');
-    %figure('Position',[1 scrsz(4) scrsz(3) scrsz(4)])
-%     f.Position = [2000 scrsz(4) scrsz(3) scrsz(4)];
     m = 1;
     n = 1;
     hold on;
-%     set(f,'KeyPressFcn', @clear);
     setGlobalStep(0);
 
     wrestle_topic = '/myo_blink/wrestle/start';
@@ -47,10 +42,7 @@ function calculate_force()
             
             hold on;
             [l_CE, delta_l_SEE, dot_l_CE_emp, dot_l_SE_emp] = read_muscle(muscle_sub, MP);
-            
-            %lower_joint_angle = joint_msg.Data;
-            dot_l_MTC =  dot_l_CE_emp + dot_l_SE_emp;
-            
+                      
             activation=activ_sub.LatestMessage.Data;
             if(activation < 0)
                 activation = 0;
@@ -63,7 +55,6 @@ function calculate_force()
             elseif    F_MTC_emp > 99
                 F_MTC_emp = 99; 
             end
-            F_MTC
             
             request.Setpoint = F_MTC_emp;
             call(move_motor, request);
@@ -90,7 +81,7 @@ function calculate_force()
 %             title('emprical velocity');
 %             plot(getGlobalStep, dot_l_CE, '*');
 %             hold on;
-            II = [II, l_PEE];
+              II = [II, l_PEE];
 %             subplot(m,n,4);
 %             title('l_P_E_E');
 %             plot(getGlobalStep, l_PEE, 'x');
